@@ -1,0 +1,48 @@
+{
+  "name": "ocean-cli",
+  "version": "0.1.0",
+  "description": "CLI and MCP server for the Ocean.io data enrichment platform",
+  "type": "module",
+  "bin": {
+    "ocean": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ocean",
+    "ocean-io",
+    "data-enrichment",
+    "company-search",
+    "people-search",
+    "sales-intelligence",
+    "cli",
+    "mcp",
+    "ai-agent",
+    "lead-generation"
+  ],
+  "author": "Top of Funnel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.3.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "commander": "^14.0.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
