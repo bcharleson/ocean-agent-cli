@@ -11,7 +11,8 @@ export const revealPhonesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    oceanIds: z.array(z.string()).describe('List of Ocean.io person IDs'),
+    oceanIds: z.union([z.array(z.string()), z.string()]),
+    webhookUrl: z.string().url().describe('Webhook URL to receive results').describe("Comma-separated Ocean.io person IDs"),
   }),
 
   cliMappings: {
@@ -30,6 +31,6 @@ export const revealPhonesCommand: CommandDefinition = {
     const oceanIds = typeof input.oceanIds === 'string'
       ? (input.oceanIds as string).split(',').map((id: string) => id.trim())
       : input.oceanIds;
-    return client.post('/v2/reveal/phones', { oceanIds });
+    return client.post("/v2/reveal/phones", { personIds: oceanIds, webhookUrl: input.webhookUrl }));
   },
 };

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import type { CommandDefinition } from '../../core/types.js';
-import { executeCommand } from '../../core/handler.js';
 
 export const enrichPersonCommand: CommandDefinition = {
   name: 'enrich_person',
@@ -8,28 +7,53 @@ export const enrichPersonCommand: CommandDefinition = {
   subcommand: 'person',
   description: 'Enrich a single person by LinkedIn URL or Ocean ID',
   examples: [
-    'ocean enrich person --linkedin-url "https://linkedin.com/in/johndoe"',
+    'ocean enrich person --linkedin "https://linkedin.com/in/johndoe"',
     'ocean enrich person --ocean-id "abc123"',
+    'ocean enrich person --name "John Doe" --company-domain "acme.com"',
   ],
 
   inputSchema: z.object({
-    linkedinUrl: z.string().optional().describe('LinkedIn profile URL'),
+    linkedin: z.string().optional().describe('LinkedIn profile URL'),
     oceanId: z.string().optional().describe('Ocean.io person ID'),
+    name: z.string().optional().describe('Full name'),
+    firstName: z.string().optional().describe('First name'),
+    lastName: z.string().optional().describe('Last name'),
+    email: z.string().optional().describe('Email address'),
+    companyDomain: z.string().optional().describe('Company domain for matching'),
+    revealEmails: z.boolean().optional().default(false).describe('Also reveal emails (uses email credits)'),
+    revealPhones: z.boolean().optional().default(false).describe('Also reveal phones (uses phone credits)'),
   }),
 
   cliMappings: {
     options: [
-      { field: 'linkedinUrl', flags: '--linkedin-url <url>', description: 'LinkedIn profile URL' },
+      { field: 'linkedin', flags: '--linkedin <url>', description: 'LinkedIn profile URL' },
       { field: 'oceanId', flags: '--ocean-id <id>', description: 'Ocean.io person ID' },
+      { field: 'name', flags: '--name <name>', description: 'Full name' },
+      { field: 'firstName', flags: '--first-name <name>', description: 'First name' },
+      { field: 'lastName', flags: '--last-name <name>', description: 'Last name' },
+      { field: 'email', flags: '--email <email>', description: 'Email address' },
+      { field: 'companyDomain', flags: '--company-domain <domain>', description: 'Company domain' },
+      { field: 'revealEmails', flags: '--reveal-emails', description: 'Reveal emails (uses email credits)' },
+      { field: 'revealPhones', flags: '--reveal-phones', description: 'Reveal phones (uses phone credits)' },
     ],
   },
 
   endpoint: { method: 'POST', path: '/v2/enrich/person' },
 
-  fieldMappings: {
-    linkedinUrl: 'body',
-    oceanId: 'body',
-  },
+  fieldMappings: {},
 
-  handler: (input, client) => executeCommand(enrichPersonCommand, input, client),
+  handler: (input, client) => {
+    const person: Record<string, any> = {};
+    if (input.linkedin) person.linkedin = input.linkedin;
+    if (input.oceanId) person.id = input.oceanId;
+    if (input.name) person.name = input.name;
+    if (input.firstName) person.firstName = input.firstName;
+    if (input.lastName) person.lastName = input.lastName;
+    if (input.email) person.email = input.email;
+
+    const body: Record<string, any> = { person };
+    if (input.companyDomain) body.company = { domain: input.companyDomain };
+
+    return client.post('/v2/enrich/person', body);
+  },
 };

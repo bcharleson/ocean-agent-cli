@@ -1,29 +1,28 @@
 import { z } from 'zod';
 import type { CommandDefinition } from '../../core/types.js';
-import { executeCommand } from '../../core/handler.js';
 
 export const searchCompaniesCommand: CommandDefinition = {
   name: 'search_companies',
   group: 'search',
   subcommand: 'companies',
-  description: 'Search for companies using filters, domains, and other criteria (v3)',
+  description: 'Search for companies using filters (v3)',
   examples: [
-    'ocean search companies --domains "acme.com,example.com"',
-    'ocean search companies --filters \'{"industry":["Technology"]}\'',
-    'ocean search companies --limit 50',
+    'ocean search companies --companies-filters \'{"domains":["roush.com","tesla.com"]}\'',
+    'ocean search companies --companies-filters \'{"industries":["Automotive"],"countries":["us"]}\'',
+    'ocean search companies --companies-filters \'{"headcountMin":100,"headcountMax":5000}\' --limit 20',
   ],
 
   inputSchema: z.object({
-    domains: z.union([z.array(z.string()), z.string()]).optional().describe('List of company domains to search'),
-    filters: z.record(z.any()).optional().describe('Search filters object'),
-    limit: z.coerce.number().optional().describe('Maximum number of results'),
-    searchAfter: z.array(z.any()).optional().describe('Pagination cursor for next page'),
+    companiesFilters: z.union([z.record(z.any()), z.string()]).optional().describe('Company filters (domains, industries, countries, headcountMin/Max, etc.)'),
+    peopleFilters: z.union([z.record(z.any()), z.string()]).optional().describe('People filters to narrow company results'),
+    limit: z.coerce.number().optional().describe('Maximum number of results (default 50)'),
+    searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
   }),
 
   cliMappings: {
     options: [
-      { field: 'domains', flags: '-d, --domains <domains>', description: 'Comma-separated list of domains' },
-      { field: 'filters', flags: '-f, --filters <json>', description: 'Search filters as JSON' },
+      { field: 'companiesFilters', flags: '--companies-filters <json>', description: 'Company filters as JSON (domains, industries, countries, etc.)' },
+      { field: 'peopleFilters', flags: '--people-filters <json>', description: 'People filters as JSON' },
       { field: 'limit', flags: '-l, --limit <number>', description: 'Maximum results to return' },
       { field: 'searchAfter', flags: '--search-after <json>', description: 'Pagination cursor as JSON array' },
     ],
@@ -32,24 +31,21 @@ export const searchCompaniesCommand: CommandDefinition = {
   endpoint: { method: 'POST', path: '/v3/search/companies' },
 
   fieldMappings: {
-    domains: 'body',
-    filters: 'body',
+    companiesFilters: 'body',
+    peopleFilters: 'body',
     limit: 'body',
     searchAfter: 'body',
   },
 
   handler: (input, client) => {
-    // Parse comma-separated domains from CLI string
     const body: Record<string, any> = {};
-    if (input.domains) {
-      body.domains = typeof input.domains === 'string'
-        ? (input.domains as string).split(',').map((d: string) => d.trim())
-        : input.domains;
+    if (input.companiesFilters) {
+      body.companiesFilters = typeof input.companiesFilters === 'string' ? JSON.parse(input.companiesFilters) : input.companiesFilters;
     }
-    if (input.filters) {
-      body.filters = typeof input.filters === 'string' ? JSON.parse(input.filters) : input.filters;
+    if (input.peopleFilters) {
+      body.peopleFilters = typeof input.peopleFilters === 'string' ? JSON.parse(input.peopleFilters) : input.peopleFilters;
     }
-    if (input.limit !== undefined) body.limit = input.limit;
+    if (input.limit !== undefined) body.size = input.limit;
     if (input.searchAfter) {
       body.searchAfter = typeof input.searchAfter === 'string' ? JSON.parse(input.searchAfter) : input.searchAfter;
     }

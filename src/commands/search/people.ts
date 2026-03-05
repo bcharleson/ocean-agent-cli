@@ -5,25 +5,27 @@ export const searchPeopleCommand: CommandDefinition = {
   name: 'search_people',
   group: 'search',
   subcommand: 'people',
-  description: 'Search for people using filters, domains, and other criteria (v3)',
+  description: 'Search for people using filters and criteria (v3)',
   examples: [
-    'ocean search people --domains "acme.com,example.com"',
-    'ocean search people --filters \'{"jobTitle":["CEO"]}\'',
-    'ocean search people --limit 50',
+    'ocean search people --people-filters \'{"jobTitleKeywords":{"anyOf":["instrumentation manager"]},"countries":["us"]}\'',
+    'ocean search people --companies-filters \'{"domains":["roush.com","rivian.com"]}\'',
+    'ocean search people --people-filters \'{"jobTitleKeywords":{"anyOf":["engineer","manager"]},"seniorities":["manager","director"]}\' --limit 50',
   ],
 
   inputSchema: z.object({
-    domains: z.union([z.array(z.string()), z.string()]).optional().describe('List of company domains to search within'),
-    filters: z.union([z.record(z.any()), z.string()]).optional().describe('Search filters object'),
-    limit: z.coerce.number().optional().describe('Maximum number of results'),
-    searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor for next page'),
+    peopleFilters: z.union([z.record(z.any()), z.string()]).optional().describe('People-level filters (jobTitleKeywords, countries, seniorities, departments, etc.)'),
+    companiesFilters: z.union([z.record(z.any()), z.string()]).optional().describe('Company-level filters (domains, industries, etc.)'),
+    limit: z.coerce.number().optional().describe('Maximum number of results (default 50, max 10000)'),
+    peoplePerCompany: z.coerce.number().optional().describe('Max results per company'),
+    searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
   }),
 
   cliMappings: {
     options: [
-      { field: 'domains', flags: '-d, --domains <domains>', description: 'Comma-separated list of domains' },
-      { field: 'filters', flags: '-f, --filters <json>', description: 'Search filters as JSON' },
+      { field: 'peopleFilters', flags: '--people-filters <json>', description: 'People filters as JSON (jobTitleKeywords, countries, seniorities, etc.)' },
+      { field: 'companiesFilters', flags: '--companies-filters <json>', description: 'Company filters as JSON (domains, industries, etc.)' },
       { field: 'limit', flags: '-l, --limit <number>', description: 'Maximum results to return' },
+      { field: 'peoplePerCompany', flags: '--people-per-company <number>', description: 'Max people per company' },
       { field: 'searchAfter', flags: '--search-after <json>', description: 'Pagination cursor as JSON array' },
     ],
   },
@@ -31,23 +33,23 @@ export const searchPeopleCommand: CommandDefinition = {
   endpoint: { method: 'POST', path: '/v3/search/people' },
 
   fieldMappings: {
-    domains: 'body',
-    filters: 'body',
+    peopleFilters: 'body',
+    companiesFilters: 'body',
     limit: 'body',
+    peoplePerCompany: 'body',
     searchAfter: 'body',
   },
 
   handler: (input, client) => {
     const body: Record<string, any> = {};
-    if (input.domains) {
-      body.domains = typeof input.domains === 'string'
-        ? (input.domains as string).split(',').map((d: string) => d.trim())
-        : input.domains;
+    if (input.peopleFilters) {
+      body.peopleFilters = typeof input.peopleFilters === 'string' ? JSON.parse(input.peopleFilters) : input.peopleFilters;
     }
-    if (input.filters) {
-      body.filters = typeof input.filters === 'string' ? JSON.parse(input.filters) : input.filters;
+    if (input.companiesFilters) {
+      body.companiesFilters = typeof input.companiesFilters === 'string' ? JSON.parse(input.companiesFilters) : input.companiesFilters;
     }
-    if (input.limit !== undefined) body.limit = input.limit;
+    if (input.limit !== undefined) body.size = input.limit;
+    if (input.peoplePerCompany !== undefined) body.peoplePerCompany = input.peoplePerCompany;
     if (input.searchAfter) {
       body.searchAfter = typeof input.searchAfter === 'string' ? JSON.parse(input.searchAfter) : input.searchAfter;
     }
