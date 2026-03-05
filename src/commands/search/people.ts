@@ -13,10 +13,10 @@ export const searchPeopleCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domains: z.array(z.string()).optional().describe('List of company domains to search within'),
-    filters: z.record(z.any()).optional().describe('Search filters object'),
+    domains: z.union([z.array(z.string()), z.string()]).optional().describe('List of company domains to search within'),
+    filters: z.union([z.record(z.any()), z.string()]).optional().describe('Search filters object'),
     limit: z.coerce.number().optional().describe('Maximum number of results'),
-    searchAfter: z.array(z.any()).optional().describe('Pagination cursor for next page'),
+    searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor for next page'),
   }),
 
   cliMappings: {

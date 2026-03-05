@@ -14,7 +14,7 @@ export const searchCompaniesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domains: z.array(z.string()).optional().describe('List of company domains to search'),
+    domains: z.union([z.array(z.string()), z.string()]).optional().describe('List of company domains to search'),
     filters: z.record(z.any()).optional().describe('Search filters object'),
     limit: z.coerce.number().optional().describe('Maximum number of results'),
     searchAfter: z.array(z.any()).optional().describe('Pagination cursor for next page'),
