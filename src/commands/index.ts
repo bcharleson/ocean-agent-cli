@@ -131,9 +131,6 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
         globalOpts.output = 'pretty';
       }
 
-      const apiToken = await resolveApiToken(globalOpts.apiToken);
-      const client = new OceanClient({ apiToken });
-
       // Build input from positional args + options
       const input: Record<string, any> = {};
 
@@ -158,7 +155,8 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
         }
       }
 
-      // Validate input against schema
+      // Validate input BEFORE resolving auth so missing-option errors take
+      // precedence over auth errors (clearer signal for new users).
       const parsed = cmdDef.inputSchema.safeParse(input);
       if (!parsed.success) {
         const issues = parsed.error.issues ?? [];
@@ -171,6 +169,9 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
         const msg = issues.map((i: any) => `${i.path?.join('.')}: ${i.message}`).join('; ');
         throw new Error(`Invalid input: ${msg}`);
       }
+
+      const apiToken = await resolveApiToken(globalOpts.apiToken);
+      const client = new OceanClient({ apiToken });
 
       const result = await cmdDef.handler(parsed.data, client);
       output(result, globalOpts);

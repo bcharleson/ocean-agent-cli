@@ -11,14 +11,23 @@ export function registerLoginCommand(program: Command): void {
     .option('--api-token <token>', 'API token (skips interactive prompt)')
     .action(async (opts) => {
       const globalOpts = program.opts() as GlobalOptions;
+      if ((globalOpts as any).pretty) {
+        (globalOpts as any).output = 'pretty';
+      }
 
       try {
-        let apiToken = opts.apiToken || process.env.OCEAN_API_TOKEN;
+        // --api-token can be read either from local opts or merged global opts;
+        // when the same flag is declared at both scopes Commander routes the
+        // value to whichever scope first claimed it, so we check both.
+        let apiToken =
+          opts.apiToken || (globalOpts as any).apiToken || process.env.OCEAN_API_TOKEN;
 
         if (!apiToken) {
           if (!process.stdin.isTTY) {
             outputError(
-              new Error('No API token provided. Use --api-token or set OCEAN_API_TOKEN'),
+              new Error(
+                'No API token provided. Use --api-token <token>, set OCEAN_API_TOKEN, or run interactively in a TTY.',
+              ),
               globalOpts,
             );
             return;

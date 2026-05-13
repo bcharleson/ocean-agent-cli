@@ -15,6 +15,7 @@ export const searchCompaniesCommand: CommandDefinition = {
   inputSchema: z.object({
     companiesFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Company filters (domains, industries, countries, headcountMin/Max, etc.)'),
     peopleFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('People filters to narrow company results'),
+    filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Alias for --companies-filters'),
     limit: z.coerce.number().optional().describe('Maximum number of results (default 50)'),
     searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
   }),
@@ -23,6 +24,7 @@ export const searchCompaniesCommand: CommandDefinition = {
     options: [
       { field: 'companiesFilters', flags: '--companies-filters <json>', description: 'Company filters as JSON (domains, industries, countries, etc.)' },
       { field: 'peopleFilters', flags: '--people-filters <json>', description: 'People filters as JSON' },
+      { field: 'filters', flags: '-f, --filters <json>', description: 'Alias for --companies-filters' },
       { field: 'limit', flags: '-l, --limit <number>', description: 'Maximum results to return' },
       { field: 'searchAfter', flags: '--search-after <json>', description: 'Pagination cursor as JSON array' },
     ],
@@ -33,14 +35,17 @@ export const searchCompaniesCommand: CommandDefinition = {
   fieldMappings: {
     companiesFilters: 'body',
     peopleFilters: 'body',
+    filters: 'body',
     limit: 'body',
     searchAfter: 'body',
   },
 
   handler: (input, client) => {
     const body: Record<string, any> = {};
-    if (input.companiesFilters) {
-      body.companiesFilters = typeof input.companiesFilters === 'string' ? JSON.parse(input.companiesFilters) : input.companiesFilters;
+    // --filters is an alias for --companies-filters on this command
+    const companies = input.companiesFilters ?? input.filters;
+    if (companies) {
+      body.companiesFilters = typeof companies === 'string' ? JSON.parse(companies) : companies;
     }
     if (input.peopleFilters) {
       body.peopleFilters = typeof input.peopleFilters === 'string' ? JSON.parse(input.peopleFilters) : input.peopleFilters;

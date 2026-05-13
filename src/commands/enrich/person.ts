@@ -14,6 +14,7 @@ export const enrichPersonCommand: CommandDefinition = {
 
   inputSchema: z.object({
     linkedin: z.string().optional().describe('LinkedIn profile URL'),
+    linkedinUrl: z.string().optional().describe('Alias for --linkedin'),
     oceanId: z.string().optional().describe('Ocean.io person ID'),
     name: z.string().optional().describe('Full name'),
     firstName: z.string().optional().describe('First name'),
@@ -27,6 +28,7 @@ export const enrichPersonCommand: CommandDefinition = {
   cliMappings: {
     options: [
       { field: 'linkedin', flags: '--linkedin <url>', description: 'LinkedIn profile URL' },
+      { field: 'linkedinUrl', flags: '--linkedin-url <url>', description: 'Alias for --linkedin' },
       { field: 'oceanId', flags: '--ocean-id <id>', description: 'Ocean.io person ID' },
       { field: 'name', flags: '--name <name>', description: 'Full name' },
       { field: 'firstName', flags: '--first-name <name>', description: 'First name' },
@@ -44,7 +46,9 @@ export const enrichPersonCommand: CommandDefinition = {
 
   handler: (input, client) => {
     const person: Record<string, any> = {};
-    if (input.linkedin) person.linkedin = input.linkedin;
+    // --linkedin-url is an alias for --linkedin
+    const linkedin = input.linkedin ?? input.linkedinUrl;
+    if (linkedin) person.linkedin = linkedin;
     if (input.oceanId) person.id = input.oceanId;
     if (input.name) person.name = input.name;
     if (input.firstName) person.firstName = input.firstName;
