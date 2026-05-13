@@ -1,14 +1,14 @@
-# ocean-cli — Agent & Contributor Guidelines
+# ocean-agent-cli — Agent & Contributor Guidelines
 
-## What is ocean-cli?
+## What is ocean-agent-cli?
 
-`ocean-cli` is an open-source CLI and MCP (Model Context Protocol) server for the [Ocean.io](https://ocean.io) data enrichment API. It mirrors the architecture of [instantly-cli](https://github.com/bcharleson/instantly-cli) and lets AI agents and developers search companies, find people, enrich profiles, reveal emails/phones, and more — all from the terminal or via any MCP-compatible AI assistant (Claude, Cursor, Windsurf, VS Code).
+`ocean-agent-cli` is an open-source CLI and MCP (Model Context Protocol) server for the [Ocean.io](https://ocean.io) data enrichment API. It mirrors the architecture of [instantly-cli](https://github.com/bcharleson/instantly-cli) and lets AI agents and developers search companies, find people, enrich profiles, reveal emails/phones, and more — all from the terminal or via any MCP-compatible AI assistant (Claude, Cursor, Windsurf, VS Code).
 
 ## Quick Start
 
 ```bash
 # Install
-npm install -g ocean-cli
+npm install -g ocean-agent-cli
 
 # Authenticate
 ocean login
@@ -163,7 +163,7 @@ OCEAN_API_TOKEN       Your Ocean.io API token
 ## Config File
 Stored at `~/.ocean/config.json`:
 ```json
-{ "apiToken": "your-token-here" }
+{ "api_token": "your-token-here" }
 ```
 
 ## Development
