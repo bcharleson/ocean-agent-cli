@@ -13,8 +13,8 @@ export const searchPeopleCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    peopleFilters: z.union([z.record(z.any()), z.string()]).optional().describe('People-level filters (jobTitleKeywords, countries, seniorities, departments, etc.)'),
-    companiesFilters: z.union([z.record(z.any()), z.string()]).optional().describe('Company-level filters (domains, industries, etc.)'),
+    peopleFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('People-level filters (jobTitleKeywords, countries, seniorities, departments, etc.)'),
+    companiesFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Company-level filters (domains, industries, etc.)'),
     limit: z.coerce.number().optional().describe('Maximum number of results (default 50, max 10000)'),
     peoplePerCompany: z.coerce.number().optional().describe('Max results per company'),
     searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),

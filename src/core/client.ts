@@ -51,7 +51,7 @@ export class OceanClient implements IOceanClient {
 
     const headers: Record<string, string> = {
       'X-Api-Token': this.apiToken,
-      'User-Agent': `ocean-cli/${VERSION}`,
+      'User-Agent': `ocean-agent-cli/${VERSION}`,
     };
 
     if (options.body !== undefined) {
@@ -84,7 +84,11 @@ export class OceanClient implements IOceanClient {
         let errorMessage: string;
         try {
           const parsed = JSON.parse(errorBody);
-          errorMessage = parsed.message || parsed.error || errorBody;
+          errorMessage =
+            parsed.detail ||
+            parsed.message ||
+            parsed.error ||
+            (typeof parsed === 'string' ? parsed : errorBody);
         } catch {
           errorMessage = errorBody || response.statusText;
         }

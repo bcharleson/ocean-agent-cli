@@ -12,8 +12,8 @@ export const enrichPeopleCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    linkedinUrls: z.array(z.string()).optional().describe('List of LinkedIn profile URLs'),
-    oceanIds: z.array(z.string()).optional().describe('List of Ocean.io person IDs'),
+    linkedinUrls: z.union([z.array(z.string()), z.string()]).optional().describe('LinkedIn profile URLs (CSV string or array)'),
+    oceanIds: z.union([z.array(z.string()), z.string()]).optional().describe('Ocean.io person IDs (CSV string or array)'),
   }),
 
   cliMappings: {

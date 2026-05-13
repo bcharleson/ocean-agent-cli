@@ -5,32 +5,31 @@ export const revealPhonesCommand: CommandDefinition = {
   name: 'reveal_phones',
   group: 'reveal',
   subcommand: 'phones',
-  description: 'Reveal phone numbers for people by Ocean IDs',
+  description: 'Reveal phone numbers for people by Ocean IDs (async — results sent to webhook URL)',
   examples: [
-    'ocean reveal phones --ocean-ids "abc123,def456"',
+    'ocean reveal phones --ocean-ids "abc123,def456" --webhook-url "https://your-webhook.com/ocean"',
   ],
 
   inputSchema: z.object({
-    oceanIds: z.union([z.array(z.string()), z.string()]),
-    webhookUrl: z.string().url().describe('Webhook URL to receive results').describe("Comma-separated Ocean.io person IDs"),
+    oceanIds: z.union([z.array(z.string()), z.string()]).describe('Comma-separated Ocean.io person IDs'),
+    webhookUrl: z.string().url().describe('Webhook URL to receive results (Ocean.io sends phones asynchronously)'),
   }),
 
   cliMappings: {
     options: [
       { field: 'oceanIds', flags: '--ocean-ids <ids>', description: 'Comma-separated Ocean.io person IDs' },
+      { field: 'webhookUrl', flags: '--webhook-url <url>', description: 'Webhook URL to receive results' },
     ],
   },
 
   endpoint: { method: 'POST', path: '/v2/reveal/phones' },
 
-  fieldMappings: {
-    oceanIds: 'body',
-  },
+  fieldMappings: {},
 
   handler: (input, client) => {
-    const oceanIds = typeof input.oceanIds === 'string'
+    const personIds = typeof input.oceanIds === 'string'
       ? (input.oceanIds as string).split(',').map((id: string) => id.trim())
       : input.oceanIds;
-    return client.post("/v2/reveal/phones", { personIds: oceanIds, webhookUrl: input.webhookUrl }));
+    return client.post('/v2/reveal/phones', { personIds, webhookUrl: input.webhookUrl });
   },
 };

@@ -11,7 +11,7 @@ export const lookupCompaniesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domains: z.array(z.string()).describe('List of company domains to look up'),
+    domains: z.union([z.array(z.string()), z.string()]).describe('Company domains (CSV string or array)'),
   }),
 
   cliMappings: {

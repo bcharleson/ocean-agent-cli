@@ -11,7 +11,7 @@ export const searchPeopleV2Command: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    filters: z.record(z.any()).optional().describe('Search filters object'),
+    filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Search filters object'),
     limit: z.coerce.number().optional().describe('Maximum number of results'),
     skip: z.coerce.number().optional().describe('Number of results to skip'),
   }),

@@ -164,7 +164,7 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
         const issues = parsed.error.issues ?? [];
         const missing = issues
           .filter((i: any) => i.code === 'invalid_type' && String(i.message).includes('received undefined'))
-          .map((i: any) => '--' + String(i.path?.[0] ?? '').replace(/_/g, '-'));
+          .map((i: any) => '--' + camelToKebab(String(i.path?.[0] ?? '')));
         if (missing.length > 0) {
           throw new Error(`Missing required option(s): ${missing.join(', ')}`);
         }
@@ -175,8 +175,18 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
       const result = await cmdDef.handler(parsed.data, client);
       output(result, globalOpts);
     } catch (error) {
-      const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
+      const globalOpts = cmd.optsWithGlobals() as GlobalOptions & Record<string, any>;
+      if (globalOpts.pretty) {
+        globalOpts.output = 'pretty';
+      }
       outputError(error, globalOpts);
     }
   });
+}
+
+function camelToKebab(name: string): string {
+  return name
+    .replace(/_/g, '-')
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase();
 }

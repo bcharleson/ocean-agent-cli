@@ -13,8 +13,8 @@ export const searchCompaniesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    companiesFilters: z.union([z.record(z.any()), z.string()]).optional().describe('Company filters (domains, industries, countries, headcountMin/Max, etc.)'),
-    peopleFilters: z.union([z.record(z.any()), z.string()]).optional().describe('People filters to narrow company results'),
+    companiesFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Company filters (domains, industries, countries, headcountMin/Max, etc.)'),
+    peopleFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('People filters to narrow company results'),
     limit: z.coerce.number().optional().describe('Maximum number of results (default 50)'),
     searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
   }),

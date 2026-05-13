@@ -12,8 +12,8 @@ export const lookupPeopleCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    linkedinHandles: z.array(z.string()).optional().describe('List of LinkedIn handles'),
-    oceanIds: z.array(z.string()).optional().describe('List of Ocean.io person IDs'),
+    linkedinHandles: z.union([z.array(z.string()), z.string()]).optional().describe('LinkedIn handles (CSV string or array)'),
+    oceanIds: z.union([z.array(z.string()), z.string()]).optional().describe('Ocean.io person IDs (CSV string or array)'),
   }),
 
   cliMappings: {
