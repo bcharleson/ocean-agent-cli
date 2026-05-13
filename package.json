@@ -1,5 +1,5 @@
 {
-  "name": "ocean-cli",
+  "name": "ocean-agent-cli",
   "version": "0.1.0",
   "description": "CLI and MCP server for the Ocean.io data enrichment platform",
   "type": "module",
@@ -14,6 +14,9 @@
     "dev": "tsx src/index.ts",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
