@@ -1,11 +1,11 @@
-# ocean-cli
+# ocean-agent-cli
 
 CLI and MCP server for the [Ocean.io](https://ocean.io) data enrichment platform.
 
 ## Installation
 
 ```bash
-npm install -g ocean-cli
+npm install -g ocean-agent-cli
 ```
 
 ## Authentication
@@ -96,7 +96,7 @@ ocean credits balance --quiet
 
 ## MCP Server
 
-Use ocean-cli as an MCP server for AI assistants:
+Use ocean-agent-cli as an MCP server for AI assistants:
 
 ```bash
 ocean mcp
@@ -111,7 +111,7 @@ Add to your Claude Desktop / Cursor / VS Code MCP config:
   "mcpServers": {
     "ocean": {
       "command": "npx",
-      "args": ["ocean-cli", "mcp"],
+      "args": ["ocean-agent-cli", "mcp"],
       "env": {
         "OCEAN_API_TOKEN": "your-api-token"
       }

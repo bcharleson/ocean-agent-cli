@@ -14,7 +14,7 @@ MCP Configuration:
     "mcpServers": {
       "ocean": {
         "command": "npx",
-        "args": ["ocean-cli", "mcp"],
+        "args": ["ocean-agent-cli", "mcp"],
         "env": {
           "OCEAN_API_TOKEN": "your-api-token"
         }
