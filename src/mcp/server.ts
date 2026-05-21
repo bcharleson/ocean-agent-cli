@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { allCommands } from '../commands/index.js';
 import { resolveApiToken } from '../core/auth.js';
 import { OceanClient } from '../core/client.js';
+import { CLI_VERSION } from '../core/version.js';
 
 export async function startMcpServer(): Promise<void> {
   const apiToken = await resolveApiToken();
@@ -10,7 +11,7 @@ export async function startMcpServer(): Promise<void> {
 
   const server = new McpServer({
     name: 'ocean',
-    version: '0.1.0',
+    version: CLI_VERSION,
   });
 
   // Register every CommandDefinition as an MCP tool

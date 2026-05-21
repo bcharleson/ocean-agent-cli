@@ -6,12 +6,13 @@ import {
   RateLimitError,
   ServerError,
   OceanError,
+  extractApiErrorMessage,
 } from './errors.js';
 
 const BASE_URL = 'https://api.ocean.io';
 const MAX_RETRIES = 3;
 const REQUEST_TIMEOUT = 30_000;
-const VERSION = '0.1.0';
+import { CLI_VERSION } from './version.js';
 
 interface ClientOptions {
   apiToken: string;
@@ -51,7 +52,7 @@ export class OceanClient implements IOceanClient {
 
     const headers: Record<string, string> = {
       'X-Api-Token': this.apiToken,
-      'User-Agent': `ocean-agent-cli/${VERSION}`,
+      'User-Agent': `ocean-agent-cli/${CLI_VERSION}`,
     };
 
     if (options.body !== undefined) {
@@ -81,17 +82,8 @@ export class OceanClient implements IOceanClient {
         }
 
         const errorBody = await response.text().catch(() => '');
-        let errorMessage: string;
-        try {
-          const parsed = JSON.parse(errorBody);
-          errorMessage =
-            parsed.detail ||
-            parsed.message ||
-            parsed.error ||
-            (typeof parsed === 'string' ? parsed : errorBody);
-        } catch {
-          errorMessage = errorBody || response.statusText;
-        }
+        const errorMessage =
+          extractApiErrorMessage(errorBody) || response.statusText || 'Request failed';
 
         switch (response.status) {
           case 401:

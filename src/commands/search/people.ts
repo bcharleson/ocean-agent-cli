@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeCompaniesFilters } from '../../core/ocean-payloads.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const searchPeopleCommand: CommandDefinition = {
@@ -51,7 +52,11 @@ export const searchPeopleCommand: CommandDefinition = {
       body.peopleFilters = typeof people === 'string' ? JSON.parse(people) : people;
     }
     if (input.companiesFilters) {
-      body.companiesFilters = typeof input.companiesFilters === 'string' ? JSON.parse(input.companiesFilters) : input.companiesFilters;
+      const parsed =
+        typeof input.companiesFilters === 'string'
+          ? JSON.parse(input.companiesFilters)
+          : input.companiesFilters;
+      body.companiesFilters = normalizeCompaniesFilters(parsed as Record<string, unknown>);
     }
     if (input.limit !== undefined) body.size = input.limit;
     if (input.peoplePerCompany !== undefined) body.peoplePerCompany = input.peoplePerCompany;

@@ -12,18 +12,34 @@ export const enrichPersonCommand: CommandDefinition = {
     'ocean enrich person --name "John Doe" --company-domain "acme.com"',
   ],
 
-  inputSchema: z.object({
-    linkedin: z.string().optional().describe('LinkedIn profile URL'),
-    linkedinUrl: z.string().optional().describe('Alias for --linkedin'),
-    oceanId: z.string().optional().describe('Ocean.io person ID'),
-    name: z.string().optional().describe('Full name'),
-    firstName: z.string().optional().describe('First name'),
-    lastName: z.string().optional().describe('Last name'),
-    email: z.string().optional().describe('Email address'),
-    companyDomain: z.string().optional().describe('Company domain for matching'),
-    revealEmails: z.boolean().optional().default(false).describe('Also reveal emails (uses email credits)'),
-    revealPhones: z.boolean().optional().default(false).describe('Also reveal phones (uses phone credits)'),
-  }),
+  inputSchema: z
+    .object({
+      linkedin: z.string().optional().describe('LinkedIn profile URL'),
+      linkedinUrl: z.string().optional().describe('Alias for --linkedin'),
+      oceanId: z.string().optional().describe('Ocean.io person ID'),
+      name: z.string().optional().describe('Full name'),
+      firstName: z.string().optional().describe('First name'),
+      lastName: z.string().optional().describe('Last name'),
+      email: z.string().optional().describe('Email address'),
+      companyDomain: z.string().optional().describe('Company domain for matching'),
+      revealEmails: z.boolean().optional().default(false).describe('Also reveal emails (uses email credits)'),
+      revealPhones: z.boolean().optional().default(false).describe('Also reveal phones (uses phone credits)'),
+    })
+    .refine(
+      (data) =>
+        !!(
+          data.linkedin ||
+          data.linkedinUrl ||
+          data.oceanId ||
+          data.name ||
+          data.email ||
+          (data.firstName && data.lastName)
+        ),
+      {
+        message:
+          'Missing required option(s): provide at least one of --linkedin, --ocean-id, --name, --email, or --first-name and --last-name',
+      },
+    ),
 
   cliMappings: {
     options: [

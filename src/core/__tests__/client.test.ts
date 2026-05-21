@@ -111,6 +111,27 @@ describe('OceanClient', () => {
       const c3 = new OceanClient({ apiToken: 't', maxRetries: 0 });
       await expect(c3.get('/x')).rejects.toThrow(/plain text body/);
     });
+
+    it('serializes object detail as JSON instead of [object Object]', async () => {
+      const detail = {
+        domains: { _errors: ['Expected array, received string'] },
+      };
+      fetchMock.mockResolvedValueOnce(mockResponse({ detail }, { status: 422 }));
+      const client = new OceanClient({ apiToken: 't', maxRetries: 0 });
+      await expect(client.get('/x')).rejects.toMatchObject({
+        name: 'ValidationError',
+        message: JSON.stringify(detail),
+      });
+    });
+
+    it('serializes FastAPI-style detail arrays', async () => {
+      const detail = [
+        { loc: ['body', 'domains'], msg: 'field required', type: 'value_error.missing' },
+      ];
+      fetchMock.mockResolvedValueOnce(mockResponse({ detail }, { status: 422 }));
+      const client = new OceanClient({ apiToken: 't', maxRetries: 0 });
+      await expect(client.get('/x')).rejects.toThrow(/field required/);
+    });
   });
 
   describe('429 rate limiting', () => {

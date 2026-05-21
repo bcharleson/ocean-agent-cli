@@ -3,34 +3,32 @@ import { OceanClient } from '../../core/client.js';
 import { saveConfig } from '../../core/config.js';
 import { output, outputError } from '../../core/output.js';
 import type { GlobalOptions } from '../../core/types.js';
+import { normalizeGlobalOptions } from '../../core/validation.js';
 
 export function registerLoginCommand(program: Command): void {
-  program
+  const loginCmd = program
     .command('login')
-    .description('Authenticate with your Ocean.io API token')
-    .option('--api-token <token>', 'API token (skips interactive prompt)')
-    .action(async (opts) => {
-      const globalOpts = program.opts() as GlobalOptions;
-      if ((globalOpts as any).pretty) {
-        (globalOpts as any).output = 'pretty';
-      }
+    .description(
+      'Authenticate with your Ocean.io API token (use global --api-token, OCEAN_API_TOKEN, or interactive prompt in a TTY)',
+    )
+    .action(async function (this: Command) {
+      const globalOpts = normalizeGlobalOptions(
+        this.optsWithGlobals() as GlobalOptions & Record<string, unknown>,
+      ) as GlobalOptions;
 
       try {
-        // --api-token can be read either from local opts or merged global opts;
-        // when the same flag is declared at both scopes Commander routes the
-        // value to whichever scope first claimed it, so we check both.
-        let apiToken =
-          opts.apiToken || (globalOpts as any).apiToken || process.env.OCEAN_API_TOKEN;
+        // Global --api-token only (do not redeclare on login — Commander drops duplicate flags).
+        let apiToken = globalOpts.apiToken || process.env.OCEAN_API_TOKEN;
 
         if (!apiToken) {
           if (!process.stdin.isTTY) {
             outputError(
               new Error(
-                'No API token provided. Use --api-token <token>, set OCEAN_API_TOKEN, or run interactively in a TTY.',
+                'No API token provided. Use: ocean login --api-token <token>, ocean --api-token <token> login, set OCEAN_API_TOKEN, or run in an interactive terminal.',
               ),
               globalOpts,
             );
-            return;
+            process.exit(1);
           }
 
           console.log('Get your API token from your Ocean.io account settings.\n');
@@ -44,17 +42,15 @@ export function registerLoginCommand(program: Command): void {
 
         if (!apiToken) {
           outputError(new Error('No API token provided'), globalOpts);
-          return;
+          process.exit(1);
         }
 
-        // Validate by making a test request
         const client = new OceanClient({ apiToken });
 
         if (globalOpts.output === 'pretty' || process.stdin.isTTY) {
           console.log('Validating API token...');
         }
 
-        // Try to check credits balance to validate the token
         try {
           await client.get('/v2/credits/balance');
         } catch {
@@ -76,6 +72,12 @@ export function registerLoginCommand(program: Command): void {
         }
       } catch (error) {
         outputError(error, globalOpts);
+        process.exit(1);
       }
     });
+
+  loginCmd.addHelpText(
+    'after',
+    '\nExamples:\n  $ ocean login --api-token <token>\n  $ ocean --api-token <token> login\n  $ ocean login   # interactive prompt (TTY only)',
+  );
 }

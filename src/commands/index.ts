@@ -3,6 +3,11 @@ import type { CommandDefinition, GlobalOptions } from '../core/types.js';
 import { resolveApiToken } from '../core/auth.js';
 import { OceanClient } from '../core/client.js';
 import { output, outputError } from '../core/output.js';
+import {
+  formatInputValidationError,
+  normalizeGlobalOptions,
+  parseJsonOptionFields,
+} from '../core/validation.js';
 
 // Auth commands (special — don't need an API client)
 import { registerLoginCommand } from './auth/login.js';
@@ -125,11 +130,9 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
 
   cmd.action(async (...actionArgs: any[]) => {
     try {
-      const globalOpts = cmd.optsWithGlobals() as GlobalOptions & Record<string, any>;
-
-      if (globalOpts.pretty) {
-        globalOpts.output = 'pretty';
-      }
+      const globalOpts = normalizeGlobalOptions(
+        cmd.optsWithGlobals() as GlobalOptions & Record<string, any>,
+      ) as GlobalOptions & Record<string, any>;
 
       // Build input from positional args + options
       const input: Record<string, any> = {};
@@ -159,35 +162,22 @@ function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
       // precedence over auth errors (clearer signal for new users).
       const parsed = cmdDef.inputSchema.safeParse(input);
       if (!parsed.success) {
-        const issues = parsed.error.issues ?? [];
-        const missing = issues
-          .filter((i: any) => i.code === 'invalid_type' && String(i.message).includes('received undefined'))
-          .map((i: any) => '--' + camelToKebab(String(i.path?.[0] ?? '')));
-        if (missing.length > 0) {
-          throw new Error(`Missing required option(s): ${missing.join(', ')}`);
-        }
-        const msg = issues.map((i: any) => `${i.path?.join('.')}: ${i.message}`).join('; ');
-        throw new Error(`Invalid input: ${msg}`);
+        throw formatInputValidationError(parsed.error);
       }
+
+      const prepared = parseJsonOptionFields(parsed.data as Record<string, unknown>, cmdDef);
 
       const apiToken = await resolveApiToken(globalOpts.apiToken);
       const client = new OceanClient({ apiToken });
 
-      const result = await cmdDef.handler(parsed.data, client);
+      const result = await cmdDef.handler(prepared, client);
       output(result, globalOpts);
     } catch (error) {
-      const globalOpts = cmd.optsWithGlobals() as GlobalOptions & Record<string, any>;
-      if (globalOpts.pretty) {
-        globalOpts.output = 'pretty';
-      }
+      const globalOpts = normalizeGlobalOptions(
+        cmd.optsWithGlobals() as GlobalOptions & Record<string, any>,
+      ) as GlobalOptions & Record<string, any>;
       outputError(error, globalOpts);
+      process.exit(1);
     }
   });
-}
-
-function camelToKebab(name: string): string {
-  return name
-    .replace(/_/g, '-')
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .toLowerCase();
 }

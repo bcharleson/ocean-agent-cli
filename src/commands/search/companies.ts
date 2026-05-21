@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeCompaniesFilters } from '../../core/ocean-payloads.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const searchCompaniesCommand: CommandDefinition = {
@@ -45,7 +46,8 @@ export const searchCompaniesCommand: CommandDefinition = {
     // --filters is an alias for --companies-filters on this command
     const companies = input.companiesFilters ?? input.filters;
     if (companies) {
-      body.companiesFilters = typeof companies === 'string' ? JSON.parse(companies) : companies;
+      const parsed = typeof companies === 'string' ? JSON.parse(companies) : companies;
+      body.companiesFilters = normalizeCompaniesFilters(parsed as Record<string, unknown>);
     }
     if (input.peopleFilters) {
       body.peopleFilters = typeof input.peopleFilters === 'string' ? JSON.parse(input.peopleFilters) : input.peopleFilters;
