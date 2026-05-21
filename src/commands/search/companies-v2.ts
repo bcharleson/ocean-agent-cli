@@ -6,6 +6,7 @@ export const searchCompaniesV2Command: CommandDefinition = {
   name: 'search_companies_v2',
   group: 'search',
   subcommand: 'companies-v2',
+  deprecated: true,
   description: 'Search for companies (v2, deprecated — use "search companies" instead)',
   examples: [
     'ocean search companies-v2 --filters \'{"includeDomains":["acme.com"]}\' --limit 10',

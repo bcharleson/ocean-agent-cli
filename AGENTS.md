@@ -24,8 +24,8 @@ ocean search people \
 # Enrich a person by LinkedIn URL
 ocean enrich person --linkedin "https://linkedin.com/in/robbielane" --pretty
 
-# Reveal emails for a person
-ocean reveal emails --person-id "<ocean-person-id>" --pretty
+# Reveal emails (async — requires webhook)
+ocean reveal emails --ocean-ids "<id1,id2>" --webhook-url "https://your-webhook.example/ocean" --pretty
 
 # Start the MCP server
 ocean mcp
@@ -55,7 +55,7 @@ src/
     enrich/             # company, person, companies (bulk), people (bulk)
     lookup/             # companies, people
     reveal/             # emails, phones
-    search/             # companies (v3), people (v3), companies-v2, people-v2
+    search/             # companies (v3), people (v3); v2 hidden from MCP/help
     warmup/             # companies
     mcp/                # MCP server start
 ```
@@ -108,10 +108,10 @@ ocean lookup people --ids '["id1","id2"]'
 ocean lookup companies --ids '["id1","id2"]'
 ```
 
-### Reveal
+### Reveal (async — webhook required)
 ```bash
-ocean reveal emails --person-id "<id>"
-ocean reveal phones --person-id "<id>"
+ocean reveal emails --ocean-ids "<id1,id2>" --webhook-url "https://your-webhook.example/ocean"
+ocean reveal phones --ocean-ids "<id>" --webhook-url "https://your-webhook.example/ocean"
 ```
 
 ### Autocomplete
@@ -182,7 +182,9 @@ npm run typecheck                           # TypeScript check
 - MCP server available at `https://api.ocean.io/mcp/?api-token=<token>` (hosted) or via `ocean mcp` (local)
 
 ## Notes for AI Agents
-- When building sourcing pipelines: use `search people` → `reveal emails` → outreach
-- Credit types: search credits (recurrent monthly), email credits (one-time), phone credits (one-time)
-- `dailyLimitRateLeft` in `credits balance` shows how many API calls remain today
-- Always check `credits balance` before running bulk operations
+
+- **MCP tools**: Only non-deprecated commands are registered (`agentCommands`). Do **not** use `search companies-v2` / `search people-v2` — use v3 `search companies` / `search people`.
+- **Agent playbook**: See `OCEAN.md` for tool names, filter shapes, and webhook requirements.
+- **Sourcing pipeline**: `data-fields list` → `search people` → `reveal emails` (with webhook) → outreach
+- **People filters**: `jobTitleKeywords` must be `{"anyOf":[...]}` (object), not a plain array
+- **Credits**: `credits balance` before bulk search/reveal; `dailyLimitRateLeft` is remaining API calls today

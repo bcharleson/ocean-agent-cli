@@ -26,6 +26,12 @@ export interface CommandDefinition<TInput extends z.ZodObject<any> = z.ZodObject
   /** Human-readable description (used in --help AND MCP tool description) */
   description: string;
 
+  /**
+   * When true, excluded from MCP tools and hidden from CLI help.
+   * Kept in `allCommands` for backwards-compatible CLI invocation.
+   */
+  deprecated?: boolean;
+
   /** Detailed examples for --help output */
   examples?: string[];
 

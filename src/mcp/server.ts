@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { allCommands } from '../commands/index.js';
+import { agentCommands } from '../commands/index.js';
 import { resolveApiToken } from '../core/auth.js';
 import { OceanClient } from '../core/client.js';
 import { CLI_VERSION } from '../core/version.js';
@@ -14,8 +14,8 @@ export async function startMcpServer(): Promise<void> {
     version: CLI_VERSION,
   });
 
-  // Register every CommandDefinition as an MCP tool
-  for (const cmdDef of allCommands) {
+  // Register stable commands only (deprecated v2 search excluded)
+  for (const cmdDef of agentCommands) {
     const shape = cmdDef.inputSchema.shape;
 
     server.registerTool(
@@ -58,5 +58,5 @@ export async function startMcpServer(): Promise<void> {
   await server.connect(transport);
 
   // Log to stderr (stdout is reserved for MCP protocol)
-  console.error('Ocean MCP server started. Tools registered:', allCommands.length);
+  console.error('Ocean MCP server started. Tools registered:', agentCommands.length);
 }

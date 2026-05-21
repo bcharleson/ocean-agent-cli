@@ -8,7 +8,9 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "OCEAN.md",
+    "AGENTS.md"
   ],
   "scripts": {
     "dev": "tsx src/index.ts",

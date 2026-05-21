@@ -6,6 +6,7 @@ export const searchPeopleV2Command: CommandDefinition = {
   name: 'search_people_v2',
   group: 'search',
   subcommand: 'people-v2',
+  deprecated: true,
   description: 'Search for people (v2, deprecated — use "search people" instead)',
   examples: [
     'ocean search people-v2 --filters \'{"jobTitles":["CEO"]}\' --limit 20',

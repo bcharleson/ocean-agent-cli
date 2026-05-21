@@ -6,7 +6,8 @@ export const searchPeopleCommand: CommandDefinition = {
   name: 'search_people',
   group: 'search',
   subcommand: 'people',
-  description: 'Search for people using filters and criteria (v3)',
+  description:
+    'Search people (v3). jobTitleKeywords must be {"anyOf":[...]} object. Optional companiesFilters. Call data_fields_list for field names.',
   examples: [
     'ocean search people --people-filters \'{"jobTitleKeywords":{"anyOf":["instrumentation manager"]},"countries":["us"]}\'',
     'ocean search people --companies-filters \'{"domains":["roush.com","rivian.com"]}\'',

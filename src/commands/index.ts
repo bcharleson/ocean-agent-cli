@@ -70,6 +70,9 @@ export const allCommands: CommandDefinition[] = [
   autocompleteSkillsCommand,
 ];
 
+/** Commands exposed to MCP and shown in CLI help — excludes deprecated endpoints */
+export const agentCommands: CommandDefinition[] = allCommands.filter((c) => !c.deprecated);
+
 export function registerAllCommands(program: Command): void {
   // Register auth commands (special handling — no API client needed)
   registerLoginCommand(program);
@@ -78,7 +81,7 @@ export function registerAllCommands(program: Command): void {
   // Register MCP server command
   registerMcpCommand(program);
 
-  // Group commands by their `group` field
+  // Group commands by their `group` field (deprecated commands stay runnable but hidden)
   const groups = new Map<string, CommandDefinition[]>();
   for (const cmd of allCommands) {
     if (!groups.has(cmd.group)) groups.set(cmd.group, []);
@@ -105,7 +108,7 @@ export function registerAllCommands(program: Command): void {
 
 function registerCommand(parent: Command, cmdDef: CommandDefinition): void {
   const cmd = parent
-    .command(cmdDef.subcommand)
+    .command(cmdDef.subcommand, cmdDef.deprecated ? { hidden: true } : undefined)
     .description(cmdDef.description);
 
   // Register positional arguments

@@ -6,7 +6,8 @@ export const searchCompaniesCommand: CommandDefinition = {
   name: 'search_companies',
   group: 'search',
   subcommand: 'companies',
-  description: 'Search for companies using filters (v3)',
+  description:
+    'Search companies (v3). Use companiesFilters JSON: domains, industries, countries, headcountMin/Max. Call data_fields_list for field names.',
   examples: [
     'ocean search companies --companies-filters \'{"domains":["roush.com","tesla.com"]}\'',
     'ocean search companies --companies-filters \'{"industries":["Automotive"],"countries":["us"]}\'',
