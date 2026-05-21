@@ -55,6 +55,33 @@ describe('output', () => {
     output({ a: { b: 1 } }, { fields: 'a.missing' });
     expect(logSpy).toHaveBeenCalledWith('{}');
   });
+
+  it('unwraps v3 search company fields from companies[].company', () => {
+    output(
+      {
+        companies: [{ company: { domain: 'calendly.com', companySize: '51-200' } }],
+        total: 1,
+      },
+      { fields: 'domain,companySize' },
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      '{"companies":[{"domain":"calendly.com","companySize":"51-200"}]}',
+    );
+  });
+
+  it('includes requested top-level search metadata', () => {
+    output(
+      {
+        companies: [{ company: { domain: 'acme.com' } }],
+        total: 42,
+        searchAfter: 'acme.com',
+      },
+      { fields: 'domain,total' },
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      '{"total":42,"companies":[{"domain":"acme.com"}]}',
+    );
+  });
 });
 
 describe('outputError', () => {

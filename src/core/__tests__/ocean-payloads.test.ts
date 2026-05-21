@@ -77,7 +77,7 @@ describe('normalizePeopleFiltersV2', () => {
 });
 
 describe('buildSearchCompaniesV2Body', () => {
-  it('spreads filters at root and maps limit/skip to size/from', () => {
+  it('nests filters under companiesFilters and maps limit/skip to size/from', () => {
     expect(
       buildSearchCompaniesV2Body({
         filters: { domains: ['acme.com'] },
@@ -85,7 +85,7 @@ describe('buildSearchCompaniesV2Body', () => {
         skip: 5,
       }),
     ).toEqual({
-      includeDomains: ['acme.com'],
+      companiesFilters: { includeDomains: ['acme.com'] },
       size: 10,
       from: 5,
     });
@@ -93,14 +93,14 @@ describe('buildSearchCompaniesV2Body', () => {
 });
 
 describe('buildSearchPeopleV2Body', () => {
-  it('spreads people filters at root and maps limit to size', () => {
+  it('nests people filters under peopleFilters and maps limit to size', () => {
     expect(
       buildSearchPeopleV2Body({
         filters: { jobTitle: ['CEO'] },
         limit: 20,
       }),
     ).toEqual({
-      jobTitles: ['CEO'],
+      peopleFilters: { jobTitles: ['CEO'] },
       size: 20,
     });
   });

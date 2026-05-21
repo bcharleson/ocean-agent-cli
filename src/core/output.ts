@@ -8,11 +8,7 @@ export function output(data: unknown, options: GlobalOptions = {}): void {
 
   if (options.fields && typeof data === 'object' && data !== null) {
     const fields = options.fields.split(',').map((f) => f.trim());
-    if (Array.isArray(data)) {
-      result = data.map((item) => pickFields(item, fields));
-    } else {
-      result = pickFields(data as Record<string, unknown>, fields);
-    }
+    result = applyFieldsFilter(data, fields);
   }
 
   if (options.output === 'pretty') {
@@ -35,6 +31,70 @@ export function outputError(error: unknown, options: GlobalOptions = {}): void {
     console.error(JSON.stringify({ error: formatted.message, code: formatted.code }));
   }
   process.exitCode = 1;
+}
+
+const SEARCH_RESULT_ARRAY_KEYS = ['companies', 'people'] as const;
+const SEARCH_RESULT_WRAPPERS = ['company', 'person'] as const;
+
+function applyFieldsFilter(data: unknown, fields: string[]): unknown {
+  if (Array.isArray(data)) {
+    return data.map((item) => pickFieldsFromSearchItem(item, fields));
+  }
+
+  if (typeof data !== 'object' || data === null) {
+    return data;
+  }
+
+  const record = data as Record<string, unknown>;
+  const arrayKey = SEARCH_RESULT_ARRAY_KEYS.find((key) => Array.isArray(record[key]));
+
+  if (arrayKey) {
+    const topLevel = pickFields(record, fields);
+    const items = (record[arrayKey] as unknown[]).map((item) =>
+      pickFieldsFromSearchItem(item, fields),
+    );
+    return { ...topLevel, [arrayKey]: items };
+  }
+
+  return pickFields(record, fields);
+}
+
+function pickFieldsFromSearchItem(item: unknown, fields: string[]): Record<string, unknown> {
+  if (typeof item !== 'object' || item === null) {
+    return {};
+  }
+
+  const obj = item as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+
+  for (const field of fields) {
+    if (field.includes('.')) {
+      const value = getNestedValue(obj, field);
+      if (value !== undefined) {
+        setNestedValue(result, field, value);
+      }
+      continue;
+    }
+
+    if (field in obj) {
+      result[field] = obj[field];
+      continue;
+    }
+
+    for (const wrapper of SEARCH_RESULT_WRAPPERS) {
+      const wrapped = obj[wrapper];
+      if (
+        wrapped !== null &&
+        typeof wrapped === 'object' &&
+        field in (wrapped as Record<string, unknown>)
+      ) {
+        result[field] = (wrapped as Record<string, unknown>)[field];
+        break;
+      }
+    }
+  }
+
+  return result;
 }
 
 function pickFields(

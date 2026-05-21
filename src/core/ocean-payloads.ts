@@ -158,8 +158,8 @@ export function normalizePeopleFiltersV2(
 }
 
 /**
- * v2 search companies: filters are top-level body fields (not nested under
- * `companiesFilters`). CLI `--limit`/`--skip` map to `size`/`from`.
+ * v2 search companies: filters live under `companiesFilters` (not on the body root).
+ * CLI `--limit`/`--skip` map to `size`/`from`.
  */
 export function buildSearchCompaniesV2Body(input: {
   filters?: Record<string, unknown>;
@@ -171,7 +171,7 @@ export function buildSearchCompaniesV2Body(input: {
   const body: Record<string, unknown> = {};
   const rawFilters = input.companiesFilters ?? input.filters;
   if (rawFilters && Object.keys(rawFilters).length > 0) {
-    Object.assign(body, normalizeCompaniesFiltersV2(rawFilters));
+    body.companiesFilters = normalizeCompaniesFiltersV2(rawFilters);
   }
   if (input.limit !== undefined) body.size = input.limit;
   if (input.skip !== undefined) body.from = input.skip;
@@ -180,7 +180,8 @@ export function buildSearchCompaniesV2Body(input: {
 }
 
 /**
- * v2 search people: people + company filter fields are top-level on the body.
+ * v2 search people: people filters under `peopleFilters`; company filters under
+ * `companiesFilters` when provided.
  */
 export function buildSearchPeopleV2Body(input: {
   filters?: Record<string, unknown>;
@@ -193,10 +194,10 @@ export function buildSearchPeopleV2Body(input: {
   const body: Record<string, unknown> = {};
   const raw = input.filters ?? input.peopleFilters;
   if (raw && Object.keys(raw).length > 0) {
-    Object.assign(body, normalizePeopleFiltersV2(raw));
+    body.peopleFilters = normalizePeopleFiltersV2(raw);
   }
   if (input.companiesFilters && Object.keys(input.companiesFilters).length > 0) {
-    Object.assign(body, normalizeCompaniesFiltersV2(input.companiesFilters));
+    body.companiesFilters = normalizeCompaniesFiltersV2(input.companiesFilters);
   }
   if (input.limit !== undefined) body.size = input.limit;
   if (input.skip !== undefined) body.from = input.skip;
