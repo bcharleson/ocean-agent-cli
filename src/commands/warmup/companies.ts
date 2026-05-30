@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { nonEmptyCsvOrArray } from '../../core/validation.js';
+import { validDomainsCsvOrArray } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const warmupCompaniesCommand: CommandDefinition = {
@@ -12,7 +12,7 @@ export const warmupCompaniesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domains: nonEmptyCsvOrArray('At least one domain is required (--domains)').describe(
+    domains: validDomainsCsvOrArray('At least one domain is required (--domains)').describe(
       'Company domains (CSV string or array)',
     ),
   }),

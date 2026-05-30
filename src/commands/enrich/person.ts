@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { optionalDomain } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const enrichPersonCommand: CommandDefinition = {
@@ -21,7 +22,7 @@ export const enrichPersonCommand: CommandDefinition = {
       firstName: z.string().optional().describe('First name'),
       lastName: z.string().optional().describe('Last name'),
       email: z.string().optional().describe('Email address'),
-      companyDomain: z.string().optional().describe('Company domain for matching'),
+      companyDomain: optionalDomain().describe('Company domain for matching'),
       revealEmails: z.boolean().optional().default(false).describe('Also reveal emails (uses email credits)'),
       revealPhones: z.boolean().optional().default(false).describe('Also reveal phones (uses phone credits)'),
     })

@@ -3,6 +3,7 @@ import {
   buildCompanyDataMapping,
   parseCsvOrArray,
 } from '../../core/ocean-payloads.js';
+import { isValidDomain } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const enrichCompaniesCommand: CommandDefinition = {
@@ -23,6 +24,9 @@ export const enrichCompaniesCommand: CommandDefinition = {
     })
     .refine((data) => parseCsvOrArray(data.domains).length > 0, {
       message: 'At least one domain is required (--domains)',
+    })
+    .refine((data) => parseCsvOrArray(data.domains).every(isValidDomain), {
+      message: 'Invalid domain format (--domains). Example: acme.com,example.com',
     }),
 
   cliMappings: {

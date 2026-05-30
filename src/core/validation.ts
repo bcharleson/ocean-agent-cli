@@ -1,6 +1,23 @@
 import { z, type ZodError } from 'zod';
-import { parseCsvOrArray } from './ocean-payloads.js';
+import { normalizeDomain, parseCsvOrArray } from './ocean-payloads.js';
 import type { CommandDefinition, GlobalOptions } from './types.js';
+
+const DOMAIN_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+const DOMAIN_TLD = /^[a-z]{2,63}$/i;
+
+/** Hostname-style domain after stripping protocol, www, and path. */
+export function isValidDomain(value: string): boolean {
+  const domain = normalizeDomain(value);
+  if (!domain || domain.length > 253) return false;
+
+  const parts = domain.split('.');
+  if (parts.length < 2) return false;
+
+  const tld = parts[parts.length - 1]!;
+  if (!DOMAIN_TLD.test(tld)) return false;
+
+  return parts.every((label) => DOMAIN_LABEL.test(label));
+}
 
 /** CSV or array option that must contain at least one non-empty value after parsing. */
 export function nonEmptyCsvOrArray(message: string) {
@@ -13,6 +30,36 @@ export function nonEmptyCsvOrArray(message: string) {
 /** Required string option that must not be blank. */
 export function nonEmptyString(message: string) {
   return z.string().refine((value) => value.trim().length > 0, { message });
+}
+
+/** Required --domain: non-empty hostname (e.g. acme.com). */
+export function domainString(
+  invalidMessage = 'Invalid domain format (--domain). Example: acme.com',
+) {
+  return nonEmptyString('Domain must not be empty (--domain)').refine(isValidDomain, {
+    message: invalidMessage,
+  });
+}
+
+/** Required --domains CSV/array: at least one valid hostname. */
+export function validDomainsCsvOrArray(
+  emptyMessage: string,
+  invalidMessage = 'Invalid domain format (--domains). Example: acme.com,example.com',
+) {
+  return nonEmptyCsvOrArray(emptyMessage).refine(
+    (value) => parseCsvOrArray(value).every(isValidDomain),
+    { message: invalidMessage },
+  );
+}
+
+/** Optional --company-domain: when set, must be a valid hostname. */
+export function optionalDomain(
+  invalidMessage = 'Invalid domain format (--company-domain). Example: acme.com',
+) {
+  return z
+    .string()
+    .optional()
+    .refine((value) => value === undefined || isValidDomain(value), { message: invalidMessage });
 }
 
 /** Optional --limit: when provided, must be a positive integer. */

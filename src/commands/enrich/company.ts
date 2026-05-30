@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { nonEmptyString } from '../../core/validation.js';
+import { domainString } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const enrichCompanyCommand: CommandDefinition = {
@@ -13,7 +13,7 @@ export const enrichCompanyCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domain: nonEmptyString('Domain must not be empty (--domain)').describe('Company domain to enrich'),
+    domain: domainString().describe('Company domain to enrich'),
   }),
 
   cliMappings: {

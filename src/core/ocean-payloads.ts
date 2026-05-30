@@ -102,7 +102,7 @@ export function buildPeopleDataMapping(input: {
   return mapping;
 }
 
-function normalizeDomain(value: string): string {
+export function normalizeDomain(value: string): string {
   return value
     .trim()
     .replace(/^https?:\/\//i, '')

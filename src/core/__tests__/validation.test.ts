@@ -3,15 +3,18 @@ import { z } from 'zod';
 import {
   assertValidOutputFormat,
   formatInputValidationError,
+  isValidDomain,
   nonEmptyCsvOrArray,
   nonEmptyString,
   parseJsonOptionFields,
   positiveLimit,
+  validDomainsCsvOrArray,
 } from '../validation.js';
 import type { CommandDefinition } from '../types.js';
 import { lookupPeopleCommand } from '../../commands/lookup/people.js';
 import { enrichPeopleCommand } from '../../commands/enrich/people.js';
 import { revealEmailsCommand } from '../../commands/reveal/emails.js';
+import { enrichCompanyCommand } from '../../commands/enrich/company.js';
 
 describe('assertValidOutputFormat', () => {
   it('accepts json and pretty', () => {
@@ -83,6 +86,48 @@ describe('nonEmptyString', () => {
     const schema = z.object({ domain: nonEmptyString('Domain must not be empty (--domain)') });
     const parsed = schema.safeParse({ domain: '   ' });
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe('isValidDomain', () => {
+  it('accepts plain and URL-style domains', () => {
+    expect(isValidDomain('acme.com')).toBe(true);
+    expect(isValidDomain('https://www.tesla.com/about')).toBe(true);
+    expect(isValidDomain('sub.domain.co.uk')).toBe(true);
+  });
+
+  it('rejects nonsense domains', () => {
+    expect(isValidDomain('!!!notadomain')).toBe(false);
+    expect(isValidDomain('not a domain')).toBe(false);
+    expect(isValidDomain('localhost')).toBe(false);
+  });
+});
+
+describe('domainString', () => {
+  it('rejects invalid domain before auth', () => {
+    const parsed = enrichCompanyCommand.inputSchema.safeParse({ domain: '!!!notadomain' });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(formatInputValidationError(parsed.error).message).toContain('Invalid domain format');
+    }
+  });
+
+  it('accepts valid domain', () => {
+    expect(enrichCompanyCommand.inputSchema.safeParse({ domain: 'roush.com' }).success).toBe(true);
+  });
+});
+
+describe('validDomainsCsvOrArray', () => {
+  const schema = z.object({
+    domains: validDomainsCsvOrArray('At least one domain is required (--domains)'),
+  });
+
+  it('rejects CSV with an invalid domain', () => {
+    const parsed = schema.safeParse({ domains: 'acme.com,!!!bad' });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(formatInputValidationError(parsed.error).message).toContain('Invalid domain format');
+    }
   });
 });
 
