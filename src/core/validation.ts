@@ -19,6 +19,38 @@ export function isValidDomain(value: string): boolean {
   return parts.every((label) => DOMAIN_LABEL.test(label));
 }
 
+/**
+ * Plain domain only — rejects URLs users paste from the browser (scheme, path, port).
+ * Returns an error message, or null when acceptable.
+ */
+export function getDomainInputIssue(value: string, flag = '--domain'): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return `Domain must not be empty (${flag})`;
+
+  if (/^https:\/\//i.test(trimmed)) {
+    return `Invalid domain format (${flag}): remove the https:// prefix. Example: tesla.com`;
+  }
+  if (/^http:\/\//i.test(trimmed)) {
+    return `Invalid domain format (${flag}): remove the http:// prefix. Example: tesla.com`;
+  }
+  if (/[/\\]/.test(trimmed)) {
+    if (/[/\\]$/.test(trimmed)) {
+      return `Invalid domain format (${flag}): remove the trailing slash. Example: tesla.com`;
+    }
+    return `Invalid domain format (${flag}): use the domain only, not a URL path. Example: tesla.com`;
+  }
+  if (trimmed.includes('@')) {
+    return `Invalid domain format (${flag}). Example: acme.com`;
+  }
+  if (trimmed.includes(':')) {
+    return `Invalid domain format (${flag}). Example: acme.com`;
+  }
+  if (!isValidDomain(trimmed)) {
+    return `Invalid domain format (${flag}). Example: acme.com`;
+  }
+  return null;
+}
+
 /** CSV or array option that must contain at least one non-empty value after parsing. */
 export function nonEmptyCsvOrArray(message: string) {
   return z.union([z.array(z.string()), z.string()]).refine(
@@ -32,34 +64,41 @@ export function nonEmptyString(message: string) {
   return z.string().refine((value) => value.trim().length > 0, { message });
 }
 
-/** Required --domain: non-empty hostname (e.g. acme.com). */
-export function domainString(
-  invalidMessage = 'Invalid domain format (--domain). Example: acme.com',
-) {
-  return nonEmptyString('Domain must not be empty (--domain)').refine(isValidDomain, {
-    message: invalidMessage,
+/** Required --domain: non-empty plain hostname (e.g. acme.com), not a full URL. */
+export function domainString() {
+  return nonEmptyString('Domain must not be empty (--domain)').superRefine((value, ctx) => {
+    const issue = getDomainInputIssue(value, '--domain');
+    if (issue) {
+      ctx.addIssue({ code: 'custom', message: issue });
+    }
   });
 }
 
-/** Required --domains CSV/array: at least one valid hostname. */
-export function validDomainsCsvOrArray(
-  emptyMessage: string,
-  invalidMessage = 'Invalid domain format (--domains). Example: acme.com,example.com',
-) {
-  return nonEmptyCsvOrArray(emptyMessage).refine(
-    (value) => parseCsvOrArray(value).every(isValidDomain),
-    { message: invalidMessage },
-  );
+/** Required --domains CSV/array: at least one valid plain hostname. */
+export function validDomainsCsvOrArray(emptyMessage: string) {
+  return nonEmptyCsvOrArray(emptyMessage).superRefine((value, ctx) => {
+    for (const domain of parseCsvOrArray(value)) {
+      const issue = getDomainInputIssue(domain, '--domains');
+      if (issue) {
+        ctx.addIssue({ code: 'custom', message: issue });
+        return;
+      }
+    }
+  });
 }
 
-/** Optional --company-domain: when set, must be a valid hostname. */
-export function optionalDomain(
-  invalidMessage = 'Invalid domain format (--company-domain). Example: acme.com',
-) {
+/** Optional --company-domain: when set, must be a valid plain hostname. */
+export function optionalDomain() {
   return z
     .string()
     .optional()
-    .refine((value) => value === undefined || isValidDomain(value), { message: invalidMessage });
+    .superRefine((value, ctx) => {
+      if (value === undefined) return;
+      const issue = getDomainInputIssue(value, '--company-domain');
+      if (issue) {
+        ctx.addIssue({ code: 'custom', message: issue });
+      }
+    });
 }
 
 /** Optional --limit: when provided, must be a positive integer. */

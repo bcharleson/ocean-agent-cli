@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeDomain } from '../../core/ocean-payloads.js';
 import { optionalDomain } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
@@ -73,7 +74,9 @@ export const enrichPersonCommand: CommandDefinition = {
     if (input.email) person.email = input.email;
 
     const body: Record<string, any> = { person };
-    if (input.companyDomain) body.company = { domain: input.companyDomain };
+    if (input.companyDomain) {
+      body.company = { domain: normalizeDomain(String(input.companyDomain)) };
+    }
 
     return client.post('/v2/enrich/person', body);
   },

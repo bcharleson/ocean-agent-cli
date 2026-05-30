@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeDomain } from '../../core/ocean-payloads.js';
 import { validDomainsCsvOrArray } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
@@ -30,9 +31,11 @@ export const lookupCompaniesCommand: CommandDefinition = {
   },
 
   handler: (input, client) => {
-    const domains = typeof input.domains === 'string'
-      ? (input.domains as string).split(',').map((d: string) => d.trim())
-      : input.domains;
+    const raw =
+      typeof input.domains === 'string'
+        ? (input.domains as string).split(',').map((d: string) => d.trim())
+        : input.domains;
+    const domains = (raw as string[]).map((d) => normalizeDomain(d));
     return client.post('/v2/lookup/companies', { domains });
   },
 };

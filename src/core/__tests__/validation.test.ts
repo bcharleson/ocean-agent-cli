@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   assertValidOutputFormat,
   formatInputValidationError,
+  getDomainInputIssue,
   isValidDomain,
   nonEmptyCsvOrArray,
   nonEmptyString,
@@ -90,9 +91,9 @@ describe('nonEmptyString', () => {
 });
 
 describe('isValidDomain', () => {
-  it('accepts plain and URL-style domains', () => {
+  it('accepts plain hostnames', () => {
     expect(isValidDomain('acme.com')).toBe(true);
-    expect(isValidDomain('https://www.tesla.com/about')).toBe(true);
+    expect(isValidDomain('www.tesla.com')).toBe(true);
     expect(isValidDomain('sub.domain.co.uk')).toBe(true);
   });
 
@@ -103,12 +104,35 @@ describe('isValidDomain', () => {
   });
 });
 
+describe('getDomainInputIssue', () => {
+  it('rejects browser-pasted URLs with targeted messages', () => {
+    expect(getDomainInputIssue('http://tesla.com')).toContain('remove the http:// prefix');
+    expect(getDomainInputIssue('https://tesla.com')).toContain('remove the https:// prefix');
+    expect(getDomainInputIssue('tesla.com/')).toContain('remove the trailing slash');
+    expect(getDomainInputIssue('tesla.com/careers')).toContain('not a URL path');
+  });
+
+  it('accepts plain domains', () => {
+    expect(getDomainInputIssue('tesla.com')).toBeNull();
+    expect(getDomainInputIssue('app.stripe.com')).toBeNull();
+    expect(getDomainInputIssue('www.tesla.com')).toBeNull();
+  });
+});
+
 describe('domainString', () => {
   it('rejects invalid domain before auth', () => {
     const parsed = enrichCompanyCommand.inputSchema.safeParse({ domain: '!!!notadomain' });
     expect(parsed.success).toBe(false);
     if (!parsed.success) {
       expect(formatInputValidationError(parsed.error).message).toContain('Invalid domain format');
+    }
+  });
+
+  it('rejects URL-style domain before auth', () => {
+    const parsed = enrichCompanyCommand.inputSchema.safeParse({ domain: 'https://tesla.com' });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(formatInputValidationError(parsed.error).message).toContain('https:// prefix');
     }
   });
 

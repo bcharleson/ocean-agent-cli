@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeDomain } from '../../core/ocean-payloads.js';
 import { domainString } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
@@ -27,6 +28,8 @@ export const enrichCompanyCommand: CommandDefinition = {
   fieldMappings: {},
 
   handler: (input, client) => {
-    return client.post('/v2/enrich/company', { company: { domain: input.domain } });
+    return client.post('/v2/enrich/company', {
+      company: { domain: normalizeDomain(String(input.domain)) },
+    });
   },
 };

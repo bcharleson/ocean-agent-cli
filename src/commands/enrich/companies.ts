@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import {
   buildCompanyDataMapping,
+  normalizeDomain,
   parseCsvOrArray,
 } from '../../core/ocean-payloads.js';
-import { isValidDomain } from '../../core/validation.js';
+import { getDomainInputIssue } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const enrichCompaniesCommand: CommandDefinition = {
@@ -25,8 +26,14 @@ export const enrichCompaniesCommand: CommandDefinition = {
     .refine((data) => parseCsvOrArray(data.domains).length > 0, {
       message: 'At least one domain is required (--domains)',
     })
-    .refine((data) => parseCsvOrArray(data.domains).every(isValidDomain), {
-      message: 'Invalid domain format (--domains). Example: acme.com,example.com',
+    .superRefine((data, ctx) => {
+      for (const domain of parseCsvOrArray(data.domains)) {
+        const issue = getDomainInputIssue(domain, '--domains');
+        if (issue) {
+          ctx.addIssue({ code: 'custom', message: issue });
+          return;
+        }
+      }
     }),
 
   cliMappings: {
