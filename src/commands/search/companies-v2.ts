@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { buildSearchCompaniesV2Body } from '../../core/ocean-payloads.js';
+import { positiveLimit } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const searchCompaniesV2Command: CommandDefinition = {
@@ -16,7 +17,7 @@ export const searchCompaniesV2Command: CommandDefinition = {
   inputSchema: z.object({
     companiesFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Company filters as JSON'),
     filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Alias for --companies-filters'),
-    limit: z.coerce.number().optional().describe('Maximum number of results (maps to API `size`)'),
+    limit: positiveLimit.describe('Maximum number of results (maps to API `size`)'),
     skip: z.coerce.number().optional().describe('Offset (maps to API `from`)'),
     searchAfter: z.union([z.string(), z.array(z.any())]).optional().describe('Pagination cursor'),
   }),

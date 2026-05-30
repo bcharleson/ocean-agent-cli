@@ -1,5 +1,26 @@
-import type { ZodError } from 'zod';
+import { z, type ZodError } from 'zod';
+import { parseCsvOrArray } from './ocean-payloads.js';
 import type { CommandDefinition, GlobalOptions } from './types.js';
+
+/** CSV or array option that must contain at least one non-empty value after parsing. */
+export function nonEmptyCsvOrArray(message: string) {
+  return z.union([z.array(z.string()), z.string()]).refine(
+    (value) => parseCsvOrArray(value).length > 0,
+    { message },
+  );
+}
+
+/** Required string option that must not be blank. */
+export function nonEmptyString(message: string) {
+  return z.string().refine((value) => value.trim().length > 0, { message });
+}
+
+/** Optional --limit: when provided, must be a positive integer. */
+export const positiveLimit = z.coerce
+  .number({ message: 'Invalid input: limit: Invalid input: expected number, received NaN' })
+  .int()
+  .positive('limit must be a positive integer (greater than 0)')
+  .optional();
 
 const OUTPUT_FORMATS = ['json', 'pretty'] as const;
 

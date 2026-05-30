@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizeCompaniesFilters } from '../../core/ocean-payloads.js';
+import { positiveLimit } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const searchCompaniesCommand: CommandDefinition = {
@@ -18,7 +19,7 @@ export const searchCompaniesCommand: CommandDefinition = {
     companiesFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Company filters (domains, industries, countries, headcountMin/Max, etc.)'),
     peopleFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('People filters to narrow company results'),
     filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Alias for --companies-filters'),
-    limit: z.coerce.number().optional().describe('Maximum number of results (default 50)'),
+    limit: positiveLimit.describe('Maximum number of results (default 50)'),
     searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
   }),
 

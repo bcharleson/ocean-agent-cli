@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseCsvOrArray } from '../../core/ocean-payloads.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const lookupPeopleCommand: CommandDefinition = {
@@ -11,10 +12,23 @@ export const lookupPeopleCommand: CommandDefinition = {
     'ocean lookup people --ocean-ids "abc123,def456"',
   ],
 
-  inputSchema: z.object({
-    linkedinHandles: z.union([z.array(z.string()), z.string()]).optional().describe('LinkedIn handles (CSV string or array)'),
-    oceanIds: z.union([z.array(z.string()), z.string()]).optional().describe('Ocean.io person IDs (CSV string or array)'),
-  }),
+  inputSchema: z
+    .object({
+      linkedinHandles: z.union([z.array(z.string()), z.string()]).optional().describe('LinkedIn handles (CSV string or array)'),
+      oceanIds: z.union([z.array(z.string()), z.string()]).optional().describe('Ocean.io person IDs (CSV string or array)'),
+    })
+    .refine(
+      (data) => {
+        const handles =
+          data.linkedinHandles !== undefined
+            ? parseCsvOrArray(data.linkedinHandles)
+            : [];
+        const ids =
+          data.oceanIds !== undefined ? parseCsvOrArray(data.oceanIds) : [];
+        return handles.length > 0 || ids.length > 0;
+      },
+      { message: 'Missing required option(s): --linkedin-handles or --ocean-ids' },
+    ),
 
   cliMappings: {
     options: [

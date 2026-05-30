@@ -3,9 +3,15 @@ import { z } from 'zod';
 import {
   assertValidOutputFormat,
   formatInputValidationError,
+  nonEmptyCsvOrArray,
+  nonEmptyString,
   parseJsonOptionFields,
+  positiveLimit,
 } from '../validation.js';
 import type { CommandDefinition } from '../types.js';
+import { lookupPeopleCommand } from '../../commands/lookup/people.js';
+import { enrichPeopleCommand } from '../../commands/enrich/people.js';
+import { revealEmailsCommand } from '../../commands/reveal/emails.js';
 
 describe('assertValidOutputFormat', () => {
   it('accepts json and pretty', () => {
@@ -53,5 +59,69 @@ describe('parseJsonOptionFields', () => {
     expect(() =>
       parseJsonOptionFields({ companiesFilters: 'not-json' }, cmdDef),
     ).toThrow(/Invalid JSON for --companies-filters/);
+  });
+});
+
+describe('nonEmptyCsvOrArray', () => {
+  const schema = z.object({ ids: nonEmptyCsvOrArray('At least one ID is required (--ocean-ids)') });
+
+  it('rejects empty string before auth', () => {
+    const parsed = schema.safeParse({ ids: '' });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(formatInputValidationError(parsed.error).message).toContain('--ocean-ids');
+    }
+  });
+
+  it('accepts non-empty CSV', () => {
+    expect(schema.safeParse({ ids: 'a,b' }).success).toBe(true);
+  });
+});
+
+describe('nonEmptyString', () => {
+  it('rejects blank domain', () => {
+    const schema = z.object({ domain: nonEmptyString('Domain must not be empty (--domain)') });
+    const parsed = schema.safeParse({ domain: '   ' });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe('positiveLimit', () => {
+  it('rejects zero and negative limits', () => {
+    expect(positiveLimit.safeParse(0).success).toBe(false);
+    expect(positiveLimit.safeParse(-1).success).toBe(false);
+  });
+
+  it('accepts positive integers and undefined', () => {
+    expect(positiveLimit.safeParse(10).success).toBe(true);
+    expect(positiveLimit.safeParse(undefined).success).toBe(true);
+  });
+});
+
+describe('command schemas (no-api-key validation)', () => {
+  it('lookup people with no args reports missing identifiers', () => {
+    const parsed = lookupPeopleCommand.inputSchema.safeParse({});
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(formatInputValidationError(parsed.error).message).toContain('--linkedin-handles');
+    }
+  });
+
+  it('enrich people with no args reports all missing options', () => {
+    const parsed = enrichPeopleCommand.inputSchema.safeParse({});
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      const msg = formatInputValidationError(parsed.error).message;
+      expect(msg).toContain('--webhook-url');
+      expect(msg).toContain('--linkedin-urls or --ocean-ids');
+    }
+  });
+
+  it('reveal emails rejects empty ocean-ids', () => {
+    const parsed = revealEmailsCommand.inputSchema.safeParse({
+      oceanIds: '',
+      webhookUrl: 'https://example.com/hook',
+    });
+    expect(parsed.success).toBe(false);
   });
 });

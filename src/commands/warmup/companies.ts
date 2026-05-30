@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nonEmptyCsvOrArray } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const warmupCompaniesCommand: CommandDefinition = {
@@ -11,7 +12,9 @@ export const warmupCompaniesCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    domains: z.union([z.array(z.string()), z.string()]).describe('Company domains (CSV string or array)'),
+    domains: nonEmptyCsvOrArray('At least one domain is required (--domains)').describe(
+      'Company domains (CSV string or array)',
+    ),
   }),
 
   cliMappings: {

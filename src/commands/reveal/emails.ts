@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nonEmptyCsvOrArray } from '../../core/validation.js';
 import type { CommandDefinition } from '../../core/types.js';
 
 export const revealEmailsCommand: CommandDefinition = {
@@ -12,7 +13,9 @@ export const revealEmailsCommand: CommandDefinition = {
   ],
 
   inputSchema: z.object({
-    oceanIds: z.union([z.array(z.string()), z.string()]).describe('Comma-separated Ocean.io person IDs'),
+    oceanIds: nonEmptyCsvOrArray('At least one Ocean ID is required (--ocean-ids)').describe(
+      'Comma-separated Ocean.io person IDs',
+    ),
     webhookUrl: z.string().url().describe('Webhook URL to receive results (Ocean.io sends emails asynchronously)'),
   }),
 

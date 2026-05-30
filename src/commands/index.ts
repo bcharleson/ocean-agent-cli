@@ -98,7 +98,10 @@ export function registerAllCommands(program: Command): void {
     }
 
     groupCmd.on('command:*', (operands: string[]) => {
-      const available = commands.map((c) => c.subcommand).join(', ');
+      const available = commands
+        .filter((c) => !c.deprecated)
+        .map((c) => c.subcommand)
+        .join(', ');
       console.error(`error: unknown command '${operands[0]}' for '${groupName}'`);
       console.error(`Available commands: ${available}`);
       process.exitCode = 1;

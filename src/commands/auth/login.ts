@@ -53,8 +53,14 @@ export function registerLoginCommand(program: Command): void {
 
         try {
           await client.get('/v2/credits/balance');
-        } catch {
-          // Some tokens might have limited scope, just save it
+        } catch (error) {
+          outputError(
+            error instanceof Error
+              ? error
+              : new Error('Invalid API token. Verify your token in Ocean.io account settings.'),
+            globalOpts,
+          );
+          process.exit(1);
         }
 
         await saveConfig({ api_token: apiToken });

@@ -25,14 +25,27 @@ export const enrichPeopleCommand: CommandDefinition = {
         .union([z.array(z.string()), z.string()])
         .optional()
         .describe('Ocean.io person IDs (CSV string or array)'),
-      webhookUrl: z.string().url().describe('Webhook URL for async enrichment results'),
+      webhookUrl: z.string().url().optional().describe('Webhook URL for async enrichment results'),
     })
-    .refine(
-      (data) =>
-        (data.linkedinUrls !== undefined && parseCsvOrArray(data.linkedinUrls).length > 0) ||
-        (data.oceanIds !== undefined && parseCsvOrArray(data.oceanIds).length > 0),
-      { message: 'Provide at least one of --linkedin-urls or --ocean-ids' },
-    ),
+    .superRefine((data, ctx) => {
+      const missing: string[] = [];
+      if (!data.webhookUrl) {
+        missing.push('--webhook-url');
+      }
+      const hasPeople =
+        (data.linkedinUrls !== undefined &&
+          parseCsvOrArray(data.linkedinUrls).length > 0) ||
+        (data.oceanIds !== undefined && parseCsvOrArray(data.oceanIds).length > 0);
+      if (!hasPeople) {
+        missing.push('--linkedin-urls or --ocean-ids');
+      }
+      if (missing.length > 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Missing required option(s): ${missing.join(', ')}`,
+        });
+      }
+    }),
 
   cliMappings: {
     options: [
