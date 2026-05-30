@@ -1,10 +1,10 @@
 {
   "name": "ocean-agent-cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "CLI and MCP server for the Ocean.io data enrichment platform",
   "type": "module",
   "bin": {
-    "ocean": "./dist/index.js"
+    "ocean": "dist/index.js"
   },
   "files": [
     "dist",
