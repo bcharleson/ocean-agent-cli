@@ -88,8 +88,23 @@ describe('nonEmptyString', () => {
 
 describe('positiveLimit', () => {
   it('rejects zero and negative limits', () => {
-    expect(positiveLimit.safeParse(0).success).toBe(false);
-    expect(positiveLimit.safeParse(-1).success).toBe(false);
+    const fail0 = positiveLimit.safeParse(0);
+    expect(fail0.success).toBe(false);
+    if (!fail0.success) {
+      expect(formatInputValidationError(fail0.error).message).toContain('positive integer');
+    }
+    const failNeg = positiveLimit.safeParse(-1);
+    expect(failNeg.success).toBe(false);
+  });
+
+  it('rejects non-numeric limit with a clear message', () => {
+    const parsed = positiveLimit.safeParse('abc');
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      const msg = formatInputValidationError(parsed.error).message;
+      expect(msg).toBe('--limit must be a number');
+      expect(msg).not.toContain('Invalid input: limit: Invalid input');
+    }
   });
 
   it('accepts positive integers and undefined', () => {

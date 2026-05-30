@@ -16,11 +16,30 @@ export function nonEmptyString(message: string) {
 }
 
 /** Optional --limit: when provided, must be a positive integer. */
-export const positiveLimit = z.coerce
-  .number({ message: 'Invalid input: limit: Invalid input: expected number, received NaN' })
-  .int()
-  .positive('limit must be a positive integer (greater than 0)')
-  .optional();
+export const positiveLimit = z.preprocess(
+  (val) => {
+    if (val === undefined || val === null || val === '') return undefined;
+    if (typeof val === 'number') return val;
+    return Number(val);
+  },
+  z.any().superRefine((value, ctx) => {
+    if (value === undefined) return;
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      ctx.addIssue({ code: 'custom', message: '--limit must be a number' });
+      return;
+    }
+    if (!Number.isInteger(value)) {
+      ctx.addIssue({ code: 'custom', message: '--limit must be an integer' });
+      return;
+    }
+    if (value <= 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '--limit must be a positive integer (greater than 0)',
+      });
+    }
+  }),
+);
 
 const OUTPUT_FORMATS = ['json', 'pretty'] as const;
 
