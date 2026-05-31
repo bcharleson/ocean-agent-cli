@@ -16,6 +16,7 @@ import { lookupPeopleCommand } from '../../commands/lookup/people.js';
 import { enrichPeopleCommand } from '../../commands/enrich/people.js';
 import { revealEmailsCommand } from '../../commands/reveal/emails.js';
 import { enrichCompanyCommand } from '../../commands/enrich/company.js';
+import { searchCompaniesCommand } from '../../commands/search/companies.js';
 
 describe('assertValidOutputFormat', () => {
   it('accepts json and pretty', () => {
@@ -63,6 +64,19 @@ describe('parseJsonOptionFields', () => {
     expect(() =>
       parseJsonOptionFields({ companiesFilters: 'not-json' }, cmdDef),
     ).toThrow(/Invalid JSON for --companies-filters/);
+  });
+
+  it('does not JSON.parse opaque --search-after cursors', () => {
+    const cursor = 'NoWgjANARA0labc123';
+    const result = parseJsonOptionFields(
+      {
+        companiesFilters: '{"countries":["us"]}',
+        searchAfter: cursor,
+      },
+      searchCompaniesCommand,
+    );
+    expect(result.searchAfter).toBe(cursor);
+    expect(result.companiesFilters).toEqual({ countries: ['us'] });
   });
 });
 

@@ -19,7 +19,7 @@ export const searchCompaniesV2Command: CommandDefinition = {
     filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Alias for --companies-filters'),
     limit: positiveLimit.describe('Maximum number of results (maps to API `size`)'),
     skip: z.coerce.number().optional().describe('Offset (maps to API `from`)'),
-    searchAfter: z.union([z.string(), z.array(z.any())]).optional().describe('Pagination cursor'),
+    searchAfter: z.string().optional().describe('Pagination cursor from a previous search response'),
   }),
 
   cliMappings: {
@@ -28,7 +28,7 @@ export const searchCompaniesV2Command: CommandDefinition = {
       { field: 'filters', flags: '-f, --filters <json>', description: 'Alias for --companies-filters' },
       { field: 'limit', flags: '-l, --limit <number>', description: 'Maximum results (API: size)' },
       { field: 'skip', flags: '--skip <number>', description: 'Results offset (API: from)' },
-      { field: 'searchAfter', flags: '--search-after <json>', description: 'Pagination cursor' },
+      { field: 'searchAfter', flags: '--search-after <cursor>', description: 'Pagination cursor from previous response' },
     ],
   },
 
@@ -51,18 +51,11 @@ export const searchCompaniesV2Command: CommandDefinition = {
           ? JSON.parse(companiesFilters)
           : companiesFilters;
 
-    const searchAfter =
-      input.searchAfter === undefined
-        ? undefined
-        : typeof input.searchAfter === 'string'
-          ? JSON.parse(input.searchAfter)
-          : input.searchAfter;
-
     const body = buildSearchCompaniesV2Body({
       companiesFilters: parsedFilters,
       limit: input.limit as number | undefined,
       skip: input.skip as number | undefined,
-      searchAfter,
+      searchAfter: input.searchAfter as string | undefined,
     });
 
     return client.post('/v2/search/companies', body);

@@ -166,7 +166,7 @@ export function buildSearchCompaniesV2Body(input: {
   companiesFilters?: Record<string, unknown>;
   limit?: number;
   skip?: number;
-  searchAfter?: unknown;
+  searchAfter?: string;
 }): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   const rawFilters = input.companiesFilters ?? input.filters;
@@ -189,7 +189,7 @@ export function buildSearchPeopleV2Body(input: {
   companiesFilters?: Record<string, unknown>;
   limit?: number;
   skip?: number;
-  searchAfter?: unknown;
+  searchAfter?: string;
 }): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   const raw = input.filters ?? input.peopleFilters;

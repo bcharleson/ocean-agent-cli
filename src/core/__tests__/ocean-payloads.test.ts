@@ -90,6 +90,18 @@ describe('buildSearchCompaniesV2Body', () => {
       from: 5,
     });
   });
+
+  it('passes searchAfter cursor as a raw string', () => {
+    expect(
+      buildSearchCompaniesV2Body({
+        companiesFilters: { countries: ['us'] },
+        searchAfter: 'NoWgjANARA0labc123',
+      }),
+    ).toEqual({
+      companiesFilters: { countries: ['us'] },
+      searchAfter: 'NoWgjANARA0labc123',
+    });
+  });
 });
 
 describe('buildSearchPeopleV2Body', () => {

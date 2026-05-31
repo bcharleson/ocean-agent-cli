@@ -20,7 +20,7 @@ export const searchCompaniesCommand: CommandDefinition = {
     peopleFilters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('People filters to narrow company results'),
     filters: z.union([z.record(z.string(), z.any()), z.string()]).optional().describe('Alias for --companies-filters'),
     limit: positiveLimit.describe('Maximum number of results (default 50)'),
-    searchAfter: z.union([z.array(z.any()), z.string()]).optional().describe('Pagination cursor as JSON array'),
+    searchAfter: z.string().optional().describe('Pagination cursor from a previous search response'),
   }),
 
   cliMappings: {
@@ -29,7 +29,7 @@ export const searchCompaniesCommand: CommandDefinition = {
       { field: 'peopleFilters', flags: '--people-filters <json>', description: 'People filters as JSON' },
       { field: 'filters', flags: '-f, --filters <json>', description: 'Alias for --companies-filters' },
       { field: 'limit', flags: '-l, --limit <number>', description: 'Maximum results to return' },
-      { field: 'searchAfter', flags: '--search-after <json>', description: 'Pagination cursor as JSON array' },
+      { field: 'searchAfter', flags: '--search-after <cursor>', description: 'Pagination cursor from previous response' },
     ],
   },
 
@@ -55,9 +55,7 @@ export const searchCompaniesCommand: CommandDefinition = {
       body.peopleFilters = typeof input.peopleFilters === 'string' ? JSON.parse(input.peopleFilters) : input.peopleFilters;
     }
     if (input.limit !== undefined) body.size = input.limit;
-    if (input.searchAfter) {
-      body.searchAfter = typeof input.searchAfter === 'string' ? JSON.parse(input.searchAfter) : input.searchAfter;
-    }
+    if (input.searchAfter !== undefined) body.searchAfter = input.searchAfter;
     return client.post('/v3/search/companies', body);
   },
 };
