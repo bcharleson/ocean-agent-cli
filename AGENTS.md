@@ -98,14 +98,14 @@ ocean search companies \
 ```bash
 ocean enrich person --linkedin "https://linkedin.com/in/example"
 ocean enrich company --domain "tesla.com"
-ocean enrich people --file people.json                 # bulk
-ocean enrich companies --file companies.json           # bulk
+ocean enrich companies --domains "stripe.com,twilio.com" --webhook-url "https://yourapp.com/webhooks/ocean"
+ocean enrich people --linkedin-urls "https://linkedin.com/in/example" --webhook-url "https://yourapp.com/webhooks/ocean"
 ```
 
 ### Lookup
 ```bash
-ocean lookup people --ids '["id1","id2"]'
-ocean lookup companies --ids '["id1","id2"]'
+ocean lookup people --linkedin-handles "johndoe" --ocean-ids "id1,id2"
+ocean lookup companies --domains "acme.com,example.com"
 ```
 
 ### Reveal (async — webhook required)

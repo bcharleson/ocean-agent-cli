@@ -42,7 +42,7 @@ These return immediately; results arrive at your webhook:
 | Tool | Required args |
 |------|----------------|
 | `enrich_companies` | `domains`, `webhookUrl` |
-| `enrich_people` | `people` (file/JSON), `webhookUrl` |
+| `enrich_people` | `linkedinUrls` or `oceanIds`, `webhookUrl` |
 | `reveal_emails` | `oceanIds`, `webhookUrl` |
 | `reveal_phones` | `oceanIds`, `webhookUrl` |
 

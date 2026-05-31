@@ -8,6 +8,7 @@
   },
   "files": [
     "dist",
+    "assets",
     "README.md",
     "OCEAN.md",
     "AGENTS.md"
@@ -33,6 +34,14 @@
     "ai-agent",
     "lead-generation"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bcharleson/ocean-agent-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bcharleson/ocean-agent-cli/issues"
+  },
+  "homepage": "https://github.com/bcharleson/ocean-agent-cli#readme",
   "author": "Top of Funnel",
   "license": "MIT",
   "engines": {
